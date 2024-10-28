@@ -1,5 +1,3 @@
-use macroquad::{color::BLUE, shapes::draw_rectangle};
-
 use crate::util::Drawable;
 
 pub struct Simulation {}

@@ -1,8 +1,8 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
-use macroquad::{color::RED, shapes::draw_circle};
+use macroquad::shapes::draw_circle;
 
-use crate::util::Drawable;
+use crate::util::{DrawTransform, Drawable, Transform, RED};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vec2 {
@@ -180,11 +180,30 @@ impl DivAssign<f32> for Vec2 {
 
 impl Drawable for Pos2 {
     fn draw(&self, transform: &crate::util::DrawTransform) {
-        draw_circle(
-            transform.transform_x(self.x),
-            transform.transform_y(self.y),
-            5.,
-            RED,
-        );
+        let transformed = transform.transform(*self);
+
+        draw_circle(transformed.x, transformed.y, 5., RED);
+    }
+}
+
+impl Transform<Vec2> for DrawTransform {
+    type Output = Vec2;
+
+    fn transform(&self, item: Vec2) -> Vec2 {
+        Vec2 {
+            x: item.x * self.zoom,
+            y: item.y * self.zoom,
+        }
+    }
+}
+
+impl Transform<Pos2> for DrawTransform {
+    type Output = Pos2;
+
+    fn transform(&self, item: Pos2) -> Self::Output {
+        Pos2 {
+            x: item.x * self.zoom,
+            y: item.y * self.zoom,
+        }
     }
 }
