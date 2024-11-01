@@ -1,6 +1,6 @@
 use macroquad::shapes::draw_line;
 
-use crate::util::{DrawTransform, Drawable, Transform, BLUE};
+use crate::util::{DrawTransform, Drawable, Transform, BLUE, DEVLINE_THICKNESS};
 
 use super::vec2::{Pos2, Vec2};
 
@@ -24,7 +24,6 @@ impl Ray {
 
 const ARROWHEAD_LENGTH: f32 = 30.;
 const ARROWHEAD_HALFWIDTH: f32 = 12.;
-const ARROWHEAD_THICKNESS: f32 = 3.;
 impl Drawable for Ray {
     fn draw(&self, transform: &crate::util::DrawTransform) {
         let origin_transform = transform.transform(self.origin);
@@ -41,7 +40,7 @@ impl Drawable for Ray {
             origin_transform.y,
             arrow_end.x,
             arrow_end.y,
-            ARROWHEAD_THICKNESS,
+            DEVLINE_THICKNESS,
             BLUE,
         );
 
@@ -50,7 +49,7 @@ impl Drawable for Ray {
             arrow_end.y,
             arrow_tip_0.x,
             arrow_tip_0.y,
-            ARROWHEAD_THICKNESS,
+            DEVLINE_THICKNESS,
             BLUE,
         );
         draw_line(
@@ -58,7 +57,7 @@ impl Drawable for Ray {
             arrow_end.y,
             arrow_tip_1.x,
             arrow_tip_1.y,
-            ARROWHEAD_THICKNESS,
+            DEVLINE_THICKNESS,
             BLUE,
         );
     }

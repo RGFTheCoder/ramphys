@@ -17,13 +17,13 @@ pub struct Pos2 {
 }
 
 impl Vec2 {
-    pub fn length_squared(&self) -> f32 {
+    pub fn length_squared(self) -> f32 {
         self.x.powi(2) + self.y.powi(2)
     }
-    pub fn length(&self) -> f32 {
+    pub fn length(self) -> f32 {
         self.length_squared().sqrt()
     }
-    pub fn normalized(&self) -> Self {
+    pub fn normalized(self) -> Self {
         let inv_length = self.length().recip();
         Self {
             x: self.x * inv_length,
@@ -35,29 +35,54 @@ impl Vec2 {
         self.x *= inv_length;
         self.y *= inv_length;
     }
-    pub fn orthogonal(&self) -> Self {
+    pub fn orthogonal(self) -> Self {
         Self {
             x: self.y,
             y: -self.x,
         }
     }
 
-    pub fn dot(&self, other: &Self) -> f32 {
+    pub fn dot(self, other: Self) -> f32 {
         self.x * other.x + self.y * other.y
     }
 
-    pub fn cross(&self, rhs: &Self) -> f32 {
+    pub fn cross(self, rhs: Self) -> f32 {
         self.x * rhs.y - self.y * rhs.x
     }
 
     pub fn with(x: f32, y: f32) -> Self {
         Self { x, y }
     }
+
+    pub fn rotate(self, angle: f32) -> Self {
+        Self {
+            x: angle.cos() * self.x - angle.sin() * self.y,
+            y: angle.cos() * self.y + angle.sin() * self.x,
+        }
+    }
 }
 
 impl Pos2 {
     pub fn at(x: f32, y: f32) -> Self {
         Self { x, y }
+    }
+
+    pub fn from_origin(self) -> Vec2 {
+        Vec2 {
+            x: self.x,
+            y: self.y,
+        }
+    }
+
+    pub fn rotate_around(self, point: Pos2, angle: f32) -> Pos2 {
+        point + (self - point).rotate(angle)
+    }
+
+    pub fn midpoint(self, point: Pos2) -> Pos2 {
+        Pos2 {
+            x: (self.x + point.x) * 0.5,
+            y: (self.y + point.y) * 0.5,
+        }
     }
 }
 

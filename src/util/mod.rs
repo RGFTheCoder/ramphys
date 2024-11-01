@@ -1,5 +1,7 @@
 use macroquad::color::Color;
 
+// Note that this entire file is for dev purposes. Later, any color management and transforms should be done by another library or user.
+
 pub trait Drawable {
     fn draw(&self, transform: &DrawTransform);
 }
@@ -56,3 +58,13 @@ pub const FG: Color = Color::new(
     0.4117647058823529,
     1.0,
 );
+
+pub const DEVLINE_THICKNESS: f32 = 3.;
+
+impl Transform<f32> for DrawTransform {
+    type Output = f32;
+
+    fn transform(&self, item: f32) -> Self::Output {
+        item * self.zoom
+    }
+}
