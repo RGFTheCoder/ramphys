@@ -1,3 +1,5 @@
+use std::iter::once;
+
 use macroquad::shapes::draw_line;
 
 use crate::{
@@ -15,6 +17,7 @@ pub struct Polygon {
     pub position: Pos2,
     pub points: Vec<Vec2>,
     pub normals: Vec<Vec2>,
+    pub theta: f32,
 }
 
 impl Polygon {
@@ -30,6 +33,7 @@ impl Polygon {
             position: center,
             normals: normals(&points),
             points,
+            theta: 0.,
         }
     }
 
@@ -48,7 +52,29 @@ impl Polygon {
                 Vec2::with(0., 1.),
                 Vec2::with(-1., 0.),
             ],
+            theta: 0.,
         }
+    }
+
+    pub fn get_world_points<'a>(&'a self) -> impl Iterator<Item = Pos2> + 'a {
+        self.points
+            .iter()
+            .map(|x| self.center() + x.rotate(self.theta))
+    }
+    pub fn get_world_normals<'a>(&'a self) -> impl Iterator<Item = Vec2> + 'a {
+        self.normals.iter().map(|x| x.rotate(self.theta))
+    }
+    pub fn get_world_points_cycled<'a>(&'a self) -> impl Iterator<Item = Pos2> + 'a {
+        self.points
+            .iter()
+            .map(|x| self.position + x.rotate(self.theta))
+            .chain(once(self.position + self.points[0].rotate(self.theta)))
+    }
+    pub fn get_world_normals_cycled<'a>(&'a self) -> impl Iterator<Item = Vec2> + 'a {
+        self.normals
+            .iter()
+            .map(|x| x.rotate(self.theta))
+            .chain(once(self.normals[0].rotate(self.theta)))
     }
 }
 
@@ -58,12 +84,7 @@ impl Shape for Polygon {
     }
 
     fn rotate(&mut self, theta: f32) {
-        self.points.iter_mut().for_each(|x| {
-            *x = x.rotate(theta);
-        });
-        self.normals.iter_mut().for_each(|x| {
-            *x = x.rotate(theta);
-        });
+        self.theta += theta;
     }
 
     fn center(&self) -> Pos2 {
@@ -73,27 +94,23 @@ impl Shape for Polygon {
 
 impl Drawable for Polygon {
     fn draw(&self, transform: &crate::util::DrawTransform) {
-        let t_center = transform.transform(self.position);
+        let points: Vec<Pos2> = self
+            .get_world_points_cycled()
+            .map(|x| transform.transform(x))
+            .collect();
 
-        for i in 0..self.points.len() {
-            let next = (i + 1).rem_euclid(self.points.len());
-            // self.points.windows(2).for_each(|x| {
-            let p1_trans = t_center + transform.transform(self.points[i]);
-            let p2_trans = t_center + transform.transform(self.points[next]);
-            draw_line(
-                p1_trans.x,
-                p1_trans.y,
-                p2_trans.x,
-                p2_trans.y,
-                DEVLINE_THICKNESS,
-                GREEN,
-            );
+        for p in points.windows(2) {
+            draw_line(p[0].x, p[0].y, p[1].x, p[1].y, DEVLINE_THICKNESS, GREEN)
+        }
 
-            // Normals
-            let origin = self.position + (self.points[i] + self.points[next]) * 0.5;
+        let real_points = self.get_world_points_cycled().collect::<Vec<Pos2>>();
+        let normals = self.get_world_normals().zip(real_points.windows(2));
+
+        for (normal, p) in normals {
+            let origin = p[0].midpoint(p[1]);
             (Ray {
                 origin,
-                direction: self.normals[i] * 5.,
+                direction: normal * 5.,
             })
             .draw(transform);
         }
