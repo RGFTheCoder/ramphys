@@ -1,6 +1,8 @@
+use std::ops::Neg;
+
 use macroquad::shapes::draw_line;
 
-use crate::util::{DrawTransform, Drawable, Transform, BLUE, DEVLINE_THICKNESS};
+use crate::util::{DrawTransform, Drawable, Transform, BLUE, DEVLINE_THICKNESS, FG};
 
 use super::vec2::{Pos2, Vec2};
 
@@ -18,6 +20,33 @@ impl Ray {
         Ray {
             origin,
             direction: target - origin,
+        }
+    }
+
+    pub fn draw_line(&self, transform: &crate::util::DrawTransform) {
+        let origin_transform = transform.transform(self.origin);
+        let direction_transform = transform.transform(self.direction);
+
+        let arrow_end = origin_transform + direction_transform;
+
+        draw_line(
+            origin_transform.x,
+            origin_transform.y,
+            arrow_end.x,
+            arrow_end.y,
+            DEVLINE_THICKNESS,
+            FG,
+        );
+    }
+}
+
+impl Neg for Ray {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            origin: self.origin,
+            direction: -self.direction,
         }
     }
 }
@@ -41,7 +70,7 @@ impl Drawable for Ray {
             arrow_end.x,
             arrow_end.y,
             DEVLINE_THICKNESS,
-            BLUE,
+            FG,
         );
 
         draw_line(
@@ -50,7 +79,7 @@ impl Drawable for Ray {
             arrow_tip_0.x,
             arrow_tip_0.y,
             DEVLINE_THICKNESS,
-            BLUE,
+            FG,
         );
         draw_line(
             arrow_end.x,
@@ -58,7 +87,7 @@ impl Drawable for Ray {
             arrow_tip_1.x,
             arrow_tip_1.y,
             DEVLINE_THICKNESS,
-            BLUE,
+            FG,
         );
     }
 }

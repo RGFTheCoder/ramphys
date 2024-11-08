@@ -12,6 +12,7 @@ pub trait Transform<T> {
     fn transform(&self, item: T) -> Self::Output;
 }
 
+#[derive(Copy, Clone)]
 pub struct DrawTransform {
     pub x: f32,
     pub y: f32,
@@ -24,6 +25,16 @@ impl DrawTransform {
     }
     pub fn transform_y(&self, y: f32) -> f32 {
         (y - self.y) * self.zoom
+    }
+}
+
+impl DrawTransform {
+    pub fn no_zoom(self) -> Self {
+        DrawTransform {
+            x: self.x * self.zoom,
+            y: self.y * self.zoom,
+            zoom: 1.,
+        }
     }
 }
 

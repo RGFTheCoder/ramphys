@@ -1,8 +1,8 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 use macroquad::shapes::draw_circle;
 
-use crate::util::{DrawTransform, Drawable, Transform, RED};
+use crate::util::{DrawTransform, Drawable, Transform, FG, RED};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vec2 {
@@ -203,11 +203,22 @@ impl DivAssign<f32> for Vec2 {
     }
 }
 
+impl Neg for Vec2 {
+    type Output = Vec2;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            x: -self.x,
+            y: -self.y,
+        }
+    }
+}
+
 impl Drawable for Pos2 {
     fn draw(&self, transform: &crate::util::DrawTransform) {
         let transformed = transform.transform(*self);
 
-        draw_circle(transformed.x, transformed.y, 5., RED);
+        draw_circle(transformed.x, transformed.y, 5., FG);
     }
 }
 

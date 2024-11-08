@@ -2,7 +2,7 @@ use macroquad::shapes::{draw_circle_lines, draw_line};
 
 use crate::{
     math::{collision_manifold::CollisionManifold, ray::Ray, vec2::Pos2},
-    util::{Drawable, Transform, DEVLINE_THICKNESS, GREEN},
+    util::{Drawable, Transform, DEVLINE_THICKNESS, FG, GREEN},
 };
 
 use super::{Collision, Shape};
@@ -30,14 +30,14 @@ impl Drawable for Circle {
         let t_center = transform.transform(self.position);
         let t_radius = transform.transform(self.radius);
 
-        draw_circle_lines(t_center.x, t_center.y, t_radius, DEVLINE_THICKNESS, GREEN);
+        draw_circle_lines(t_center.x, t_center.y, t_radius, DEVLINE_THICKNESS, FG);
         draw_line(
             t_center.x,
             t_center.y,
             t_center.x + t_radius,
             t_center.y,
             DEVLINE_THICKNESS,
-            GREEN,
+            FG,
         );
     }
 }

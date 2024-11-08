@@ -4,13 +4,14 @@ use macroquad::shapes::draw_line;
 
 use crate::{
     math::{
+        collision_manifold::CollisionManifold,
         ray::Ray,
         vec2::{Pos2, Vec2},
     },
-    util::{Drawable, Transform, DEVLINE_THICKNESS, GREEN},
+    util::{Drawable, Transform, DEVLINE_THICKNESS, FG, GREEN},
 };
 
-use super::Shape;
+use super::{circle::Circle, Collision, Shape};
 
 #[derive(Clone, Debug)]
 pub struct Polygon {
@@ -100,9 +101,10 @@ impl Drawable for Polygon {
             .collect();
 
         for p in points.windows(2) {
-            draw_line(p[0].x, p[0].y, p[1].x, p[1].y, DEVLINE_THICKNESS, GREEN)
+            draw_line(p[0].x, p[0].y, p[1].x, p[1].y, DEVLINE_THICKNESS, FG)
         }
 
+        // Normals
         let real_points = self.get_world_points_cycled().collect::<Vec<Pos2>>();
         let normals = self.get_world_normals().zip(real_points.windows(2));
 
@@ -110,13 +112,13 @@ impl Drawable for Polygon {
             let origin = p[0].midpoint(p[1]);
             (Ray {
                 origin,
-                direction: normal * 5.,
+                direction: normal,
             })
-            .draw(transform);
+            .draw_line(transform);
         }
 
         // Origin
-        // self.position.draw(transform);
+        self.position.draw(transform);
     }
 }
 
@@ -161,4 +163,69 @@ fn normals(points: &Vec<Vec2>) -> Vec<Vec2> {
     }
 
     normals
+}
+
+impl Collision for Polygon {
+    fn collides(&self, other: &Self) -> Option<CollisionManifold> {
+        let contact_a = get_contact_point(self, other)?;
+        let contact_b = get_contact_point(other, self)?;
+
+        if contact_a.depth < contact_b.depth {
+            Some(contact_a)
+        } else {
+            Some(-contact_b)
+        }
+    }
+}
+
+struct SupportPoint {
+    pub vertex: Pos2,
+    pub penetration: f32,
+}
+
+fn get_contact_point(a: &Polygon, b: &Polygon) -> Option<CollisionManifold> {
+    let mut contact = None;
+    let mut minimum_penetration = f32::MAX;
+
+    let a_world_points = a.get_world_points();
+    let a_world_normals = a.get_world_normals();
+    let b_world_points: Vec<Pos2> = b.get_world_points().collect();
+
+    for (p, n) in a_world_points.zip(a_world_normals) {
+        let support_point = find_support_point(n, p, &b_world_points)?;
+
+        if support_point.penetration < minimum_penetration {
+            minimum_penetration = support_point.penetration;
+            contact = Some(CollisionManifold {
+                normal: n,
+                penetration: Ray {
+                    origin: support_point.vertex,
+                    direction: n * minimum_penetration,
+                },
+                depth: minimum_penetration,
+            });
+        }
+    }
+
+    contact
+}
+
+fn find_support_point(n: Vec2, p: Pos2, b_world_points: &[Pos2]) -> Option<SupportPoint> {
+    let mut deepest_penetration: f32 = 0.;
+    let mut support = None;
+
+    for &v in b_world_points {
+        let vertice_to_point = v - p;
+        let penetration = -(vertice_to_point.dot(n));
+
+        if penetration > deepest_penetration {
+            deepest_penetration = penetration;
+            support = Some(SupportPoint {
+                vertex: v,
+                penetration,
+            });
+        }
+    }
+
+    support
 }
